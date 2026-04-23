@@ -347,10 +347,8 @@ function buildOllamaModelsConfig(
 ) {
   return modelNames.map((name) => {
     const discovered = discoveredModelsByName?.get(name);
-    // Suggested cloud models may be injected before `/api/tags` exposes them,
-    // so keep Kimi vision-capable during setup even without discovered metadata.
     const capabilities =
-      discovered?.capabilities ?? (name === "kimi-k2.5:cloud" ? ["vision"] : undefined);
+      discovered?.capabilities ?? (name === "kimi-k2.5:cloud" ? ["vision", "tools"] : undefined);
     return buildOllamaModelDefinition(name, discovered?.contextWindow, capabilities);
   });
 }

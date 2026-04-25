@@ -142,18 +142,28 @@ export async function queryOllamaModelShowInfo(
 
       let contextWindow: number | undefined;
       if (data.model_info) {
+        let generalCtx: number | undefined;
         for (const [key, value] of Object.entries(data.model_info)) {
           if (
-            key.endsWith(".context_length") &&
-            typeof value === "number" &&
-            Number.isFinite(value)
+            !key.endsWith(".context_length") ||
+            typeof value !== "number" ||
+            !Number.isFinite(value)
           ) {
-            const ctx = Math.floor(value);
-            if (ctx > 0) {
-              contextWindow = ctx;
-              break;
-            }
+            continue;
           }
+          const ctx = Math.floor(value);
+          if (ctx <= 0) {
+            continue;
+          }
+          if (key.startsWith("general.")) {
+            generalCtx = ctx;
+          } else {
+            contextWindow = ctx;
+            break;
+          }
+        }
+        if (contextWindow === undefined && generalCtx !== undefined) {
+          contextWindow = generalCtx;
         }
       }
 

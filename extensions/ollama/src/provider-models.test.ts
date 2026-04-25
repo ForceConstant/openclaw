@@ -302,4 +302,41 @@ describe("ollama provider models", () => {
 
     expect(enriched[0]?.contextWindow).toBe(8192);
   });
+
+  it("prefers architecture-specific context_length over general.context_length", async () => {
+    const models: OllamaTagModel[] = [{ name: "deepseek-v4-flash" }];
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        model_info: {
+          "general.context_length": 128000,
+          "deepseek4.context_length": 1048576,
+          "deepseek4.embedding_length": 4096,
+        },
+        capabilities: ["completion", "tools", "thinking"],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const enriched = await enrichOllamaModelsWithContext("http://127.0.0.1:11434", models);
+
+    expect(enriched[0]?.contextWindow).toBe(1048576);
+  });
+
+  it("falls back to general.context_length when no architecture-specific key exists", async () => {
+    const models: OllamaTagModel[] = [{ name: "generic-model" }];
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        model_info: {
+          "general.context_length": 32768,
+          "general.architecture": "llama",
+        },
+        capabilities: ["completion"],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const enriched = await enrichOllamaModelsWithContext("http://127.0.0.1:11434", models);
+
+    expect(enriched[0]?.contextWindow).toBe(32768);
+  });
 });

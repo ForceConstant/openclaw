@@ -557,7 +557,7 @@ private fun OverviewScreen(
               action = {
                 ClawSecondaryButton(
                   text = nativeString("Start Chat"),
-                  onClick = startNewChat,
+                  onClick = { onSelectTab(Tab.Chat) },
                 )
               },
             )
